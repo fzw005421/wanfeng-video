@@ -15,6 +15,9 @@ Windows 桌面端视频播放器，对接苹果 CMS 资源站，支持 m3u8/HLS 
 - 系统公告
 - 明暗双主题
 
+- ![Uploading de8ab188bb6cc0ca0c4f363a324697d0.png…]()
+
+
 ## 结构
 
 ```
