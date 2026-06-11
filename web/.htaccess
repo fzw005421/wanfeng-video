@@ -1,0 +1,15 @@
+RewriteEngine On
+
+# 关键：保留 Authorization 头
+# Apache mod_rewrite 会剥离 Authorization，必须显式传递
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# API路由 — 所有 /api/* 请求统一交给 api/index.php 处理
+RewriteRule ^api/(.*)$ api/index.php [QSA,L]
+
+# 管理后台
+RewriteRule ^admin/$ admin/index.php [L]
+
+# 默认首页
+RewriteRule ^$ index.php [L]

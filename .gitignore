@@ -1,0 +1,44 @@
+# 依赖
+js/node_modules/
+
+# 编译产物
+js/dist/
+*.exe
+
+# 备份
+js/backup-xgplayer/
+
+# 大文件 / 归档
+js.zip
+js/ffmpeg/*.zip
+
+# 旧版播放器残留（已切到 hls.js）
+js/renderer/vendor/xgplayer*
+js/scripts/
+
+# IDE / 编辑器
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Claude Code
+.claude/
+
+# 临时 / 测试 / 无关文件
+test.txt
+index.html
+
+# 后端运行时
+web/cache/
+web/.user.ini
+
+# 环境变量（不要提交数据库密码等敏感信息）
+.env
+.env.local
