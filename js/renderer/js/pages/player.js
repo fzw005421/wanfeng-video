@@ -38,6 +38,7 @@ const PlayerPage = {
     `;
 
     // 挂载播放器
+    this._currentEpisodes = data.episodes_all || [];
     VideoPlayer.mount(
       document.getElementById('player-container-wrap'),
       {
@@ -46,6 +47,7 @@ const PlayerPage = {
           App.toast(msg, 'error');
         },
         onReady: () => console.log('[PlayerPage.onReady] 播放器就绪回调'),
+        onEnded: () => this._onVideoEnded(),
       }
     );
 
@@ -141,5 +143,54 @@ const PlayerPage = {
       this._data.episode_name || '',
       this._data.parse_api_id || 0
     );
+  },
+
+  /** 视频播放完毕 → 弹窗问是否播放下一集 */
+  async _onVideoEnded() {
+    const currentIdx = this._data.episode_index || 1;
+    const episodes = this._currentEpisodes;
+    const nextEp = episodes.find(ep => ep.index === currentIdx + 1);
+
+    if (!nextEp) {
+      App.toast('已播放完全部剧集', 'info');
+      return;
+    }
+
+    const ok = await App.showConfirm(
+      '播放下一集',
+      `即将播放：${nextEp.name || '第' + nextEp.index + '集'}`
+    );
+    if (!ok) return;
+
+    this._saveProgress();
+    await this._playNextEpisode(nextEp.index);
+  },
+
+  /** 播放指定集数 */
+  async _playNextEpisode(epIndex) {
+    const result = await ApiClient.play(
+      this._data.vod_id,
+      epIndex,
+      this._data.parse_api_id || 0,
+      this._data.source_index || 0
+    );
+
+    if (result.code !== 200) {
+      App.toast('切换剧集失败: ' + (result.msg || '未知错误'), 'error');
+      return;
+    }
+
+    const d = result.data;
+    this._data.video_url = d.video_url;
+    this._data.episode_index = d.episode_index;
+    this._data.episode_name = d.episode_name;
+    this._data.parse_api_id = d.parse_api_id;
+    this._data.parse_api_name = d.parse_api_name;
+
+    // 更新标题
+    const title = document.getElementById('player-page-title');
+    if (title) title.textContent = `${this._data.vod_name || ''} - ${d.episode_name || ''}`;
+
+    VideoPlayer.play(d.video_url, d.type);
   },
 };

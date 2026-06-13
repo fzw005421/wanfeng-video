@@ -243,6 +243,12 @@ const DetailPage = {
     }
 
     const d = result.data;
+    // 取当前播放源的剧集列表，传给播放页用于"下一集"导航
+    const currentSource = this._sources.length > 1
+      ? (this._sources[this._selectedSourceIdx] || null)
+      : null;
+    const episodesAll = currentSource ? currentSource.episodes : this._episodes;
+
     App.openPlayer({
       vod_id: d.vod_id,
       episode_index: d.episode_index,
@@ -253,6 +259,7 @@ const DetailPage = {
       episode_name: d.episode_name,
       parse_api_id: d.parse_api_id,
       parse_api_name: d.parse_api_name,
+      episodes_all: episodesAll,
     });
   },
 

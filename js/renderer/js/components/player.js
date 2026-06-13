@@ -32,6 +32,7 @@ const VideoPlayer = {
     this._container = container;
     this._onError = callbacks.onError || (() => {});
     this._onReady = callbacks.onReady || (() => {});
+    this._onEnded = callbacks.onEnded || (() => {});
     container.innerHTML = '';
   },
 
@@ -204,6 +205,7 @@ const VideoPlayer = {
     video.addEventListener('ended', () => {
       this._syncPlayBtn();
       this._centerPlayEl.classList.remove('hidden');
+      this._onEnded();
     });
     video.addEventListener('timeupdate', () => { if (!this._dragging) this._updateProgress(); });
     video.addEventListener('waiting', () => {});
@@ -226,12 +228,28 @@ const VideoPlayer = {
       else { video.pause(); }
     });
 
-    // 进度条
+    // 进度条拖拽
+    this._onDrag = (e) => {
+      if (this._dragging) this._seekTo(e);
+    };
+    this._onDragEnd = () => {
+      this._dragging = false;
+      document.removeEventListener('mousemove', this._onDrag);
+      document.removeEventListener('mouseup', this._onDragEnd);
+    };
     this._progressEl.addEventListener('mousedown', (e) => {
       this._dragging = true;
       this._seekTo(e);
       document.addEventListener('mousemove', this._onDrag);
       document.addEventListener('mouseup', this._onDragEnd);
+    });
+    // 安全网：鼠标在进度条外松开也重置
+    document.addEventListener('mouseup', () => {
+      if (this._dragging) {
+        this._dragging = false;
+        document.removeEventListener('mousemove', this._onDrag);
+        document.removeEventListener('mouseup', this._onDragEnd);
+      }
     });
 
     // 音量
@@ -308,9 +326,6 @@ const VideoPlayer = {
     };
     document.addEventListener('fullscreenchange', this._onFullscreenChange);
   },
-
-  _onDrag: null,
-  _onDragEnd: null,
 
   /* ======================== 进度控制 ======================== */
 
