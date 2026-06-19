@@ -12,6 +12,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   isMaximized: () => ipcRenderer.invoke('window:isMaximized'),
   setTitle: (title) => ipcRenderer.invoke('window:setTitle', title),
 
+  // 系统浏览器
+  openExternal: (url) => ipcRenderer.invoke('shell:openExternal', url),
+
   // 平台信息
   platform: process.platform,
 });

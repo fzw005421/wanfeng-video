@@ -105,7 +105,7 @@ const HistoryPage = {
     playBtn.textContent = '继续播放';
     playBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      this._continuePlay(rec.vod_id, rec.episode_index, rec.parse_api_id);
+      this._continuePlay(rec);
     });
     item.appendChild(playBtn);
 
@@ -116,8 +116,10 @@ const HistoryPage = {
     return item;
   },
 
-  async _continuePlay(vodId, epIdx, parseId) {
-    const result = await ApiClient.play(vodId, epIdx || 1, parseId || 0);
+  async _continuePlay(rec) {
+    const result = await ApiClient.play(
+      rec.vod_id, rec.episode_index || 1, rec.parse_api_id || 0, 0
+    );
 
     if (result.code !== 200) {
       App.toast(result.msg || '无法获取播放地址', 'error');
@@ -134,6 +136,9 @@ const HistoryPage = {
       episode_name: d.episode_name,
       parse_api_id: d.parse_api_id,
       parse_api_name: d.parse_api_name,
+      vod_pic: rec.vod_pic || '',
+      resume_position: rec.play_position || 0,
+      episodes_all: [],
     });
   },
 

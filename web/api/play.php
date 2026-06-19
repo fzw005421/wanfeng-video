@@ -138,27 +138,19 @@ function handlePlay($params) {
     $videoType = $parseResult['type'] ?? 'hls';
     $vodName = $vod['vod_name'] ?? '';
 
-    // 5. 保存播放记录（同一影片只保留最新一条，换集只更新不新增）
-    $existing = dbQueryOne(
-        "SELECT id FROM wf_play_history WHERE user_id = ? AND vod_id = ?",
-        [$userId, $vodId]
+    // 5. 保存播放记录（按用户+影片+集数去重，避免唯一键冲突）
+    dbExecute(
+        "INSERT INTO wf_play_history (user_id, vod_id, vod_name, vod_pic, episode_index, episode_name, parse_api_id, play_position, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 0, NOW())
+         ON DUPLICATE KEY UPDATE
+         vod_name = VALUES(vod_name),
+         vod_pic = VALUES(vod_pic),
+         episode_name = VALUES(episode_name),
+         parse_api_id = VALUES(parse_api_id),
+         play_position = 0,
+         updated_at = NOW()",
+        [$userId, $vodId, $vodName, $vod['vod_pic'] ?? '', $episodeIndex, $episodeName, $parseApi['id']]
     );
-
-    if ($existing) {
-        dbExecute(
-            "UPDATE wf_play_history SET
-             vod_name = ?, vod_pic = ?, episode_index = ?, episode_name = ?,
-             parse_api_id = ?, play_position = 0, updated_at = NOW()
-             WHERE id = ?",
-            [$vodName, $vod['vod_pic'] ?? '', $episodeIndex, $episodeName, $parseApi['id'], $existing['id']]
-        );
-    } else {
-        dbExecute(
-            "INSERT INTO wf_play_history (user_id, vod_id, vod_name, vod_pic, episode_index, episode_name, parse_api_id, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, NOW())",
-            [$userId, $vodId, $vodName, $vod['vod_pic'] ?? '', $episodeIndex, $episodeName, $parseApi['id']]
-        );
-    }
 
     jsonResponse(200, '解析成功', [
         'video_url' => $videoUrl,

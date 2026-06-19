@@ -250,3 +250,50 @@ function timeAgo($datetime) {
     if ($diff < 2592000) return floor($diff / 86400) . '天前';
     return date('Y-m-d', $time);
 }
+
+// ==================== 版本控制 ====================
+
+/**
+ * 检查客户端版本
+ * 无版本号 → 旧客户端，拒绝服务
+ * 版本落后 + 强制更新 → 拒绝服务
+ * @return array|null 返回错误响应数据（需中止），null 表示通过
+ */
+function checkAppVersion() {
+    // 获取客户端版本号（HTTP Header）
+    $clientVersion = '';
+    $headers = [];
+    if (function_exists('getallheaders')) {
+        $headers = getallheaders();
+    } else {
+        foreach ($_SERVER as $k => $v) {
+            if (strpos($k, 'HTTP_') === 0) {
+                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($k, 5)))))] = $v;
+            }
+        }
+    }
+    foreach ($headers as $k => $v) {
+        if (strtolower($k) === 'x-app-version') {
+            $clientVersion = trim($v);
+            break;
+        }
+    }
+
+    // 无版本号 = 老前端
+    if (empty($clientVersion)) {
+        return ['code' => 410, 'msg' => '客户端版本过旧，请更新到最新版本'];
+    }
+
+    $latestVersion = getSetting('latest_version', '1.0.0');
+    $forceUpdate = getSetting('force_update', '0');
+
+    // 版本号比较（语义化版本）
+    if (version_compare($clientVersion, $latestVersion, '<')) {
+        if ($forceUpdate === '1') {
+            return ['code' => 410, 'msg' => '检测到重要更新，请升级客户端后再使用'];
+        }
+    }
+
+    // 版本不落后或非强制更新 → 通过
+    return null;
+}

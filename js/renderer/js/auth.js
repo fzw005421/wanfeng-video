@@ -51,7 +51,7 @@ const AuthManager = {
   },
 
   getServerUrl() {
-    return this.get('server_url', 'http://127.0.0.1:38971');  // 修改为你的后端服务器地址
+    return this.get('server_url', 'http://127.0.0.1:38971');
   },
 
   isLoggedIn() {

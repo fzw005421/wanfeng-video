@@ -73,6 +73,17 @@ ipcMain.handle('window:setTitle', (_event, title) => {
   if (mainWindow) mainWindow.setTitle(title || '晚风影视');
 });
 
+ipcMain.handle('shell:openExternal', (_event, url) => {
+  if (!url || typeof url !== 'string') return false;
+  // 只允许 http/https 链接
+  if (!/^https?:\/\//i.test(url)) return false;
+  try {
+    return shell.openExternal(url);
+  } catch (e) {
+    return false;
+  }
+});
+
 // ======================== 自动创建桌面快捷方式 ========================
 
 function createDesktopShortcut() {

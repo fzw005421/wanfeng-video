@@ -133,7 +133,104 @@ const App = {
       userInfo.nickname || userInfo.username,
       ApiClient.getBaseUrl()
     );
-    this._showPage('home');
+    // 先检查版本，再进入主页
+    this._checkVersion().then(() => this._showPage('home'));
+  },
+
+  /** 检查客户端版本更新 */
+  async _checkVersion() {
+    try {
+      const result = await ApiClient.getServerSettings();
+      if (result.code !== 200) return;
+      const data = result.data;
+      const latest = data.latest_version || '1.0.0';
+      const forceUpdate = data.force_update === '1';
+      const updateNotes = data.update_notes || '';
+      const updateUrl = data.update_url || '';
+
+      if (APP_VERSION >= latest) return;
+
+      if (forceUpdate) {
+        this._showUpdateModal({
+          title: '🔔 重要更新',
+          notes: updateNotes,
+          latestVersion: latest,
+          currentVersion: APP_VERSION,
+          url: updateUrl,
+          force: true,
+        });
+      } else {
+        // 可选更新：有 url 时弹窗，没有则 toast
+        if (updateUrl) {
+          this._showUpdateModal({
+            title: '🎉 发现新版本',
+            notes: updateNotes,
+            latestVersion: latest,
+            currentVersion: APP_VERSION,
+            url: updateUrl,
+            force: false,
+          });
+        } else {
+          App.toast('有新版本 v' + latest + ' 可用，建议更新', 'info');
+        }
+      }
+    } catch (_) { /* 版本检查失败不影响使用 */ }
+  },
+
+  /** 显示版本更新弹窗 */
+  _showUpdateModal(opts) {
+    const overlay = document.getElementById('modal-overlay');
+
+    const notesHtml = opts.notes
+      ? `<div class="update-notes">${opts.notes.replace(/\n/g, '<br>')}</div>`
+      : '';
+
+    overlay.innerHTML = `
+      <div class="modal-box update-modal">
+        <h3>${opts.title}</h3>
+        <div class="update-version-row">
+          <span>当前版本：${opts.currentVersion}</span>
+          <span>→</span>
+          <span style="color:var(--primary);font-weight:600;">最新版本：${opts.latestVersion}</span>
+        </div>
+        ${notesHtml}
+        <div class="modal-actions">
+          ${opts.force
+            ? `<button class="btn btn-sm cancel-btn">退出应用</button>`
+            : `<button class="btn btn-outline btn-sm cancel-btn">暂不更新</button>`
+          }
+          <button class="btn btn-primary btn-sm confirm-btn">立即更新</button>
+        </div>
+      </div>
+    `;
+    overlay.classList.remove('hidden');
+
+    const closeModal = () => { overlay.classList.add('hidden'); };
+
+    overlay.querySelector('.cancel-btn').addEventListener('click', () => {
+      closeModal();
+      if (opts.force) {
+        if (window.electronAPI) window.electronAPI.close();
+      }
+    });
+
+    overlay.querySelector('.confirm-btn').addEventListener('click', () => {
+      // 用系统默认浏览器打开下载链接
+      const url = opts.url || 'https://github.com/fzw005421/wanfeng-video/releases';
+      if (window.electronAPI && window.electronAPI.openExternal) {
+        window.electronAPI.openExternal(url);
+      } else {
+        window.open(url, '_blank');
+      }
+      if (opts.force) {
+        // 强制更新：给一点时间打开浏览器，然后关闭应用
+        setTimeout(() => {
+          if (window.electronAPI) window.electronAPI.close();
+        }, 1500);
+      } else {
+        closeModal();
+      }
+    });
   },
 
   onLogout() {

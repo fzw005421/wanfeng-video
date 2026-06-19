@@ -9,6 +9,10 @@ function handleSettings($method, $params) {
         'site_name' => getSetting('site_name', '晚风影视'),
         'site_logo' => getSetting('site_logo', ''),
         'app_version' => getSetting('app_version', '1.0.0'),
+        'latest_version' => getSetting('latest_version', '1.0.0'),
+        'force_update' => getSetting('force_update', '0'),
+        'update_notes' => getSetting('update_notes', ''),
+        'update_url' => getSetting('update_url', ''),
     ];
 
     jsonResponse(200, '获取成功', $settings);

@@ -137,11 +137,15 @@ INSERT INTO `wf_settings` (`setting_key`, `setting_value`) VALUES
 ('cms_db_user', ''),
 ('cms_db_pass', ''),
 ('cms_db_name', ''),
-('app_version', '1.0.0')
+('app_version', '1.0.0'),
+('latest_version', '1.0.0'),
+('force_update', '0'),
+('update_notes', ''),
+('update_url', '')
 ON DUPLICATE KEY UPDATE `setting_value` = VALUES(`setting_value`);
 
 -- ----------------------------
 -- 插入默认解析接口示例
 -- ----------------------------
 INSERT INTO `wf_parse_apis` (`name`, `url_template`, `sort_order`, `status`) VALUES
-('默认线路', 'http://154.201.94.39/2.php?url={url}', 1, 1);
+('默认线路', 'https://your-parse-api.com/parse?url={url}', 1, 1);

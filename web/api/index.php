@@ -34,10 +34,19 @@ $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true) ?: [];
 $params = array_merge($_GET, $input);
 
+// ==================== 版本检查 ====================
+// 对 login / register / settings 以外的接口执行版本检查
+$route = $segments[0] ?? '';
+$versionExempt = in_array($route, ['login', 'register', 'settings']);
+if (!$versionExempt) {
+    $versionError = checkAppVersion();
+    if ($versionError !== null) {
+        jsonResponse($versionError['code'], $versionError['msg']);
+    }
+}
+
 // 路由分发 — 全局 try/catch 确保所有错误都以 JSON 格式返回
 try {
-    $route = $segments[0] ?? '';
-
     switch ($route) {
         case 'login':
             require __DIR__ . '/login.php';

@@ -33,6 +33,7 @@ const VideoPlayer = {
     this._onError = callbacks.onError || (() => {});
     this._onReady = callbacks.onReady || (() => {});
     this._onEnded = callbacks.onEnded || (() => {});
+    this._onNext = callbacks.onNext || (() => {});
     container.innerHTML = '';
   },
 
@@ -67,6 +68,7 @@ const VideoPlayer = {
               <svg class="wf-icon-pause" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
             </button>
             <span class="wf-time">00:00 / 00:00</span>
+            <button class="wf-btn wf-btn-next wf-disabled" title="下一集">下一集</button>
             <div class="wf-spacer"></div>
             <div class="wf-volume-wrap">
               <button class="wf-btn wf-btn-volume" title="音量">
@@ -107,6 +109,7 @@ const VideoPlayer = {
     this._volumeBtn = el.querySelector('.wf-btn-volume');
     this._volumeSlider = el.querySelector('.wf-volume-slider');
     this._speedSelect = el.querySelector('.wf-speed-select');
+    this._nextBtn = el.querySelector('.wf-btn-next');
     this._fullscreenBtn = el.querySelector('.wf-btn-fullscreen');
 
     const video = this._video;
@@ -276,6 +279,13 @@ const VideoPlayer = {
         document.exitFullscreen();
       } else {
         this._wrapper.requestFullscreen();
+      }
+    });
+
+    // 下一集
+    this._nextBtn.addEventListener('click', () => {
+      if (!this._nextBtn.classList.contains('wf-disabled')) {
+        this._onNext();
       }
     });
 
@@ -451,6 +461,13 @@ const VideoPlayer = {
 
   isPaused() {
     return this._video ? this._video.paused : true;
+  },
+
+  /** 启用/禁用下一集按钮 */
+  showNextBtn(enabled) {
+    if (this._nextBtn) {
+      this._nextBtn.classList.toggle('wf-disabled', !enabled);
+    }
   },
 };
 

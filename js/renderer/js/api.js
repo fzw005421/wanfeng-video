@@ -4,9 +4,12 @@
  * 支持请求取消、自动重试、页面级竞态防护
  */
 
+// 客户端版本（与 package.json 同步）
+const APP_VERSION = '1.0.0';
+
 const ApiClient = {
   // 服务器地址（不暴露在 UI 中）
-  _baseUrl: 'http://127.0.0.1:38971',  // 修改为你的后端服务器地址
+  _baseUrl: 'http://127.0.0.1:38971',
   _token: '',
   _timeout: 15000,
   _maxRetries: 2,
@@ -64,6 +67,7 @@ const ApiClient = {
     const headers = {
       'Content-Type': 'application/json',
       'User-Agent': 'WanFengVideo/1.0 (Windows NT 10.0)',
+      'X-App-Version': APP_VERSION,
     };
 
     if (this._token) {

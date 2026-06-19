@@ -260,6 +260,8 @@ const DetailPage = {
       parse_api_id: d.parse_api_id,
       parse_api_name: d.parse_api_name,
       episodes_all: episodesAll,
+      vod_pic: this._vodData.vod_pic || '',
+      resume_position: 0,
     });
   },
 

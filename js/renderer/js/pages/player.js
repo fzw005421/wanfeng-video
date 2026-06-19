@@ -46,14 +46,29 @@ const PlayerPage = {
           console.error('[PlayerPage.onError] 播放器报错:', msg);
           App.toast(msg, 'error');
         },
-        onReady: () => console.log('[PlayerPage.onReady] 播放器就绪回调'),
+        onReady: () => {
+          console.log('[PlayerPage.onReady] 播放器就绪回调');
+          // 恢复播放进度
+          const pos = data.resume_position;
+          if (pos && pos > 0) {
+            setTimeout(() => VideoPlayer.seek(pos), 1000);
+          }
+          // 显示下一集按钮
+          this._updateNextBtn();
+        },
         onEnded: () => this._onVideoEnded(),
+        onNext: () => this._onVideoEnded(),
       }
     );
 
     // 开始播放
     console.log('[PlayerPage.render] 调用 VideoPlayer.play()...');
     VideoPlayer.play(data.video_url, data.video_type);
+
+    // 如果剧集列表为空（从播放记录进入），异步加载剧集
+    if (this._currentEpisodes.length === 0 && data.vod_id) {
+      this._loadEpisodes(data.vod_id);
+    }
 
     // 加载解析接口
     this._loadParseApis();
@@ -73,6 +88,24 @@ const PlayerPage = {
     document.getElementById('player-parse-select').addEventListener('change', (e) => {
       this._switchParseApi(parseInt(e.target.value) || 0);
     });
+  },
+
+  /** 从播放记录进入时，异步加载剧集列表 */
+  async _loadEpisodes(vodId) {
+    try {
+      const result = await ApiClient.getVodDetail(vodId);
+      if (result.code !== 200) return;
+      const v = result.data;
+      const sources = v.sources || [];
+      const episodes = v.episodes || [];
+      // 优先用当前播放源的剧集
+      const srcIdx = this._data.source_index || 0;
+      const src = sources[srcIdx];
+      this._currentEpisodes = (src && src.episodes && src.episodes.length > 0)
+        ? src.episodes
+        : episodes;
+      this._updateNextBtn();
+    } catch (_) { /* 静默失败，不影响播放 */ }
   },
 
   async _loadParseApis() {
@@ -139,13 +172,20 @@ const PlayerPage = {
       Math.floor(VideoPlayer.getCurrentTime()),
       Math.floor(VideoPlayer.getDuration()),
       this._data.vod_name || '',
-      '',
+      this._data.vod_pic || '',
       this._data.episode_name || '',
       this._data.parse_api_id || 0
     );
   },
 
-  /** 视频播放完毕 → 弹窗问是否播放下一集 */
+  /** 更新下一集按钮显隐 */
+  _updateNextBtn() {
+    const currentIdx = this._data.episode_index || 1;
+    const nextEp = this._currentEpisodes.find(ep => ep.index === currentIdx + 1);
+    VideoPlayer.showNextBtn(!!nextEp);
+  },
+
+  /** 视频播放完毕 → 直接播下一集 */
   async _onVideoEnded() {
     const currentIdx = this._data.episode_index || 1;
     const episodes = this._currentEpisodes;
@@ -155,12 +195,6 @@ const PlayerPage = {
       App.toast('已播放完全部剧集', 'info');
       return;
     }
-
-    const ok = await App.showConfirm(
-      '播放下一集',
-      `即将播放：${nextEp.name || '第' + nextEp.index + '集'}`
-    );
-    if (!ok) return;
 
     this._saveProgress();
     await this._playNextEpisode(nextEp.index);
@@ -191,6 +225,7 @@ const PlayerPage = {
     const title = document.getElementById('player-page-title');
     if (title) title.textContent = `${this._data.vod_name || ''} - ${d.episode_name || ''}`;
 
+    this._updateNextBtn();
     VideoPlayer.play(d.video_url, d.type);
   },
 };

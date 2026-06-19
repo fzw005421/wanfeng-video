@@ -30,6 +30,12 @@ const LoginPage = {
               <input class="form-input" id="login-username" type="text" placeholder="请输入用户名" autocomplete="username">
               <label>密码</label>
               <input class="form-input" id="login-password" type="password" placeholder="请输入密码" autocomplete="current-password">
+              <div class="remember-row">
+                <label class="remember-label">
+                  <input type="checkbox" id="login-remember">
+                  <span>记住密码</span>
+                </label>
+              </div>
               <button class="btn btn-submit" id="btn-login-submit">登  录</button>
             </div>
             <div class="login-form hidden" id="register-form">
@@ -50,7 +56,7 @@ const LoginPage = {
     `;
 
     this._bindEvents(container);
-    this._loadSavedUsername();
+    this._loadSavedCredentials();
   },
 
   _bindEvents(container) {
@@ -91,10 +97,28 @@ const LoginPage = {
     }
   },
 
-  _loadSavedUsername() {
-    const username = AuthManager.get('username');
-    const input = document.getElementById('login-username');
-    if (username && input) input.value = username;
+  _loadSavedCredentials() {
+    const username = AuthManager.get('remembered_username') || AuthManager.get('username');
+    const pwdEncoded = AuthManager.get('remembered_password');
+    if (username) {
+      const userInput = document.getElementById('login-username');
+      if (userInput) userInput.value = username;
+    }
+    if (pwdEncoded) {
+      const pwdInput = document.getElementById('login-password');
+      const chk = document.getElementById('login-remember');
+      if (pwdInput) pwdInput.value = this._decodePassword(pwdEncoded);
+      if (chk) chk.checked = true;
+    }
+  },
+
+  _encodePassword(plain) {
+    // 简单的 base64 编码防止明文泄露（桌面端本地存储，安全风险可接受）
+    try { return btoa(plain); } catch (_) { return ''; }
+  },
+
+  _decodePassword(encoded) {
+    try { return atob(encoded); } catch (_) { return ''; }
   },
 
   async _doLogin() {
@@ -116,6 +140,15 @@ const LoginPage = {
     document.getElementById('login-status').textContent = '晚风影视 v1.0';
 
     if (result.code === 200) {
+      // 记住密码
+      const remember = document.getElementById('login-remember').checked;
+      if (remember) {
+        AuthManager.set('remembered_username', username);
+        AuthManager.set('remembered_password', this._encodePassword(password));
+      } else {
+        AuthManager.remove('remembered_username');
+        AuthManager.remove('remembered_password');
+      }
       App._onLoginSuccess(result.data);
     } else {
       App.toast(result.msg || '登录失败', 'error');
