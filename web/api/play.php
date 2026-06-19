@@ -145,6 +145,7 @@ function handlePlay($params) {
          ON DUPLICATE KEY UPDATE
          vod_name = VALUES(vod_name),
          vod_pic = VALUES(vod_pic),
+         episode_index = VALUES(episode_index),
          episode_name = VALUES(episode_name),
          parse_api_id = VALUES(parse_api_id),
          play_position = 0,

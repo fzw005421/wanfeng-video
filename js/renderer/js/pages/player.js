@@ -220,6 +220,8 @@ const PlayerPage = {
     this._data.episode_name = d.episode_name;
     this._data.parse_api_id = d.parse_api_id;
     this._data.parse_api_name = d.parse_api_name;
+    // 清除恢复位置，避免下一集从上一集的进度开始播放
+    this._data.resume_position = 0;
 
     // 更新标题
     const title = document.getElementById('player-page-title');

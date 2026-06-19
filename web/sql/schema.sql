@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `wf_play_history` (
     `parse_api_id` INT UNSIGNED DEFAULT 0 COMMENT '上次使用的解析接口',
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY `uk_user_vod_ep` (`user_id`, `vod_id`, `episode_index`),
+    UNIQUE KEY `uk_user_vod` (`user_id`, `vod_id`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_updated` (`updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='播放记录表';

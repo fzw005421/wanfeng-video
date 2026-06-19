@@ -69,6 +69,7 @@ function handleHistorySave($userId, $params) {
          ON DUPLICATE KEY UPDATE
          vod_name = VALUES(vod_name),
          vod_pic = VALUES(vod_pic),
+         episode_index = VALUES(episode_index),
          episode_name = VALUES(episode_name),
          play_position = VALUES(play_position),
          duration = VALUES(duration),

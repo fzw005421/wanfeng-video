@@ -9,7 +9,7 @@ const APP_VERSION = '1.0.0';
 
 const ApiClient = {
   // 服务器地址（不暴露在 UI 中）
-  _baseUrl: 'http://127.0.0.1:38971',
+  _baseUrl: 'http://pc.snjsy.de',
   _token: '',
   _timeout: 15000,
   _maxRetries: 2,
